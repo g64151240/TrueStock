@@ -1,26 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const productTable = document.getElementById('productTable').querySelector('tbody');
     const addProductButton = document.getElementById('addProductButton');
     const modal = document.getElementById('modal');
     const closeButton = document.getElementById('closeButton');
     const productForm = document.getElementById('productForm');
-    const productTableBody = document.querySelector('#productTable tbody');
 
     const products = [];
 
-    function openModal() {
-        modal.style.display = 'block';
-    }
-
-    function closeModal() {
-        modal.style.display = 'none';
-        productForm.reset();
-    }
-
     function renderProducts() {
-        productTableBody.innerHTML = '';
+        productTable.innerHTML = '';
         products.forEach((product, index) => {
             const row = document.createElement('tr');
-
             row.innerHTML = `
                 <td>${product.productId}</td>
                 <td>${product.productName}</td>
@@ -28,34 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><img src="${product.imageUrl}" alt="${product.productName}" width="50"></td>
                 <td>${product.variants}</td>
                 <td>${product.description}</td>
-                <td>
-                    <button onclick="editProduct(${index})">Edit</button>
-                    <button onclick="deleteProduct(${index})">Delete</button>
-                </td>
+                <td><button onclick="editProduct(${index})">Edit</button> <button onclick="deleteProduct(${index})">Delete</button></td>
             `;
-
-            productTableBody.appendChild(row);
+            productTable.appendChild(row);
         });
     }
 
-    function addProduct(event) {
-        event.preventDefault();
-
-        const newProduct = {
-            productId: productForm.productId.value,
-            productName: productForm.productName.value,
-            price: productForm.price.value,
-            imageUrl: productForm.imageUrl.value,
-            variants: productForm.variants.value,
-            description: productForm.description.value,
-        };
-
-        products.push(newProduct);
+    function addProduct(product) {
+        products.push(product);
         renderProducts();
-        closeModal();
     }
 
-    window.editProduct = (index) => {
+    function editProduct(index) {
         const product = products[index];
         productForm.productId.value = product.productId;
         productForm.productName.value = product.productName;
@@ -63,35 +37,64 @@ document.addEventListener('DOMContentLoaded', () => {
         productForm.imageUrl.value = product.imageUrl;
         productForm.variants.value = product.variants;
         productForm.description.value = product.description;
+        addProductButton.textContent = 'Update Product';
+        addProductButton.onclick = () => updateProduct(index);
+        modal.style.display = 'block';
+    }
 
-        openModal();
-        productForm.onsubmit = (e) => {
-            e.preventDefault();
-            products[index] = {
-                productId: productForm.productId.value,
-                productName: productForm.productName.value,
-                price: productForm.price.value,
-                imageUrl: productForm.imageUrl.value,
-                variants: productForm.variants.value,
-                description: productForm.description.value,
-            };
-            renderProducts();
-            closeModal();
-            productForm.onsubmit = addProduct;
+    function updateProduct(index) {
+        const product = {
+            productId: productForm.productId.value,
+            productName: productForm.productName.value,
+            price: productForm.price.value,
+            imageUrl: productForm.imageUrl.value,
+            variants: productForm.variants.value,
+            description: productForm.description.value
         };
-    };
+        products[index] = product;
+        renderProducts();
+        modal.style.display = 'none';
+        productForm.reset();
+        addProductButton.textContent = 'Add Product';
+        addProductButton.onclick = showAddProductModal;
+    }
 
-    window.deleteProduct = (index) => {
+    function deleteProduct(index) {
         products.splice(index, 1);
         renderProducts();
-    };
+    }
 
-    addProductButton.addEventListener('click', openModal);
+    function showAddProductModal() {
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        productForm.reset();
+        addProductButton.textContent = 'Add Product';
+        addProductButton.onclick = showAddProductModal;
+    }
+
+    productForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const product = {
+            productId: productForm.productId.value,
+            productName: productForm.productName.value,
+            price: productForm.price.value,
+            imageUrl: productForm.imageUrl.value,
+            variants: productForm.variants.value,
+            description: productForm.description.value
+        };
+        addProduct(product);
+        modal.style.display = 'none';
+        productForm.reset();
+    });
+
+    addProductButton.addEventListener('click', showAddProductModal);
     closeButton.addEventListener('click', closeModal);
-    productForm.addEventListener('submit', addProduct);
 
     window.onclick = (event) => {
-        if (event.target == modal) {
+        if (event.target === modal) {
             closeModal();
         }
     };
